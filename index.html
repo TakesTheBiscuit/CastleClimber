@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="node_modules/phaser/dist/phaser-arcade-physics.min.js"></script>
+    <title>CastleClimber Game</title>
+</head>
+<!-- https://opengameart.org/content/rpg-asset-character-knights-sms -->
+<body>
+
+    <script>
+        var config = {
+            type: Phaser.AUTO,
+            width: 1024,
+            height: 768,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 480 },
+                    debug: false
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        var levels =
+            [{
+                repeat: 0
+            },
+            {
+                repeat: 1
+            },
+            {
+                repeat: 3
+            },
+            {
+                repeat: 7
+            },
+            {
+                repeat: 10
+            }];
+
+
+
+        var player;
+        var wm; // wash machine
+
+        var stars;
+        var platforms;
+        var cursors;
+        var score = 0;
+        var scoreText;
+
+        var level = 0;
+
+        var hasStars = 0;
+        var washStarted = false;
+
+        var timer = 0;
+        var timerText;
+
+        var gameOver = false;
+        var music;
+
+        var didCollectFlag = false;
+
+
+        var knight1;
+        var knight2;
+
+        var game = new Phaser.Game(config);
+
+        function preload() {
+
+            this.load.audio('piano', ['assets/piano.wav']);
+
+            this.load.audio('flagSound', ['assets/flag.wav']);
+
+
+            this.load.image('sky', 'assets/img/castle.png');
+            this.load.image('ground', 'assets/img/ground.png');
+            this.load.image('platform2', 'assets/img/platform2.png');
+
+            this.load.image('platform-8', 'assets/img/platform-8.png');
+            this.load.image('platform-7', 'assets/img/platform-7.png');
+            this.load.image('platform-4', 'assets/img/platform-4.png');
+            this.load.image('platform-5', 'assets/img/platform-5.png');
+            this.load.image('platform-3', 'assets/img/platform-3.png');
+            this.load.image('platform-1', 'assets/img/platform-1.png');
+
+
+            this.load.image('star', 'assets/img/star.png');
+
+            this.load.image('flag', 'assets/img/castleflag.png');
+
+            this.load.spritesheet('knight-idle', 'assets/img/knight/Idle/Idle_South_StripSheet.png', { frameWidth: 24, frameHeight: 30 });
+
+
+            this.load.spritesheet('dude', 'assets/img/dude.png', { frameWidth: 32, frameHeight: 48 });
+            this.load.spritesheet('dude-with-king', 'assets/img/dude-with-star.png', { frameWidth: 32, frameHeight: 48 });
+            this.load.spritesheet('wash-cycle', 'assets/img/wash-cycle.png', { frameWidth: 191, frameHeight: 209 });
+        }
+
+
+        function create() {
+            //this.add.image(2440, 3432, 'sky');
+
+            // background
+            this.background = this.add.image(0, 0, "sky")
+            .setOrigin(0, 0);
+            // Based on your game size, it may "stretch" and distort.
+            this.background.displayWidth = this.sys.canvas.width;
+            this.background.displayHeight = this.sys.canvas.height;
+
+            platforms = this.physics.add.staticGroup();
+
+            // actual ground
+            platforms.create(200, 750, 'ground').setScale(0.43).setOrigin(0.2,0.5).refreshBody();
+
+            // platform 8: nearest floor
+            platforms.create(650, 920, 'platform-8').setScale(0.43).setOrigin(0.5,5.9).refreshBody();
+
+            // platform 7 left side, right hand component
+            platforms.create(450, 700, 'platform-7').setScale(0.4,0.3).setOrigin(0.5,5.9).refreshBody();
+
+            // platform 4 left side, right hand component
+            platforms.create(468, 790, 'platform-4').setScale(0.4,0.3).setOrigin(0.5,5.9).refreshBody();
+
+            // platform 5 right side
+             platforms.create(700, 645, 'platform-5').setScale(0.4,0.3).setOrigin(0.5,5.9).refreshBody();
+
+            // platform 3 right side
+            platforms.create(418, 522, 'platform-3').setScale(0.4,0.3).setOrigin(0.5,5.9).refreshBody();
+
+            // platform 1 top side
+            platforms.create(620, 460, 'platform-1').setScale(0.4,0.3).setOrigin(0.5,5.9).refreshBody();
+
+
+            const flagSound = this.sound.add('flagSound');
+            
+
+
+            // castle roof
+            platforms.create(120, 100, 'ground')
+                .setScale(1.25)
+                .setOrigin(-0.35, 0)
+                .refreshBody();
+
+
+            player = this.physics.add.sprite(900, 600, 'dude');
+            player.setBounce(0.2);
+            player.setCollideWorldBounds(true);
+
+            knight1 = this.physics.add.sprite(350,600, 'knight-idle');
+            knight1.setScale(3.7,3.7);
+            knight1.setBounce(0.2);
+            knight1.setCollideWorldBounds(true);
+
+
+            knight2 = this.physics.add.sprite(650, 100, 'knight-idle');
+            knight2.setScale(1.8,1.8);
+            knight2.setBounce(0.2);
+            knight2.setCollideWorldBounds(true);
+
+            // wm = this.physics.add.sprite(80, 80, '');
+            // wm.setScale(0.2);
+            // wm.setOrigin(-2.7, 0.2);
+            // //wm.setBounce(0.2);
+            // wm.setCollideWorldBounds(true);
+            // wm.setImmovable(true);
+            // wm.refreshBody();
+
+           // this.add.sprite(550, 55, 'flag').setScale(0.2);
+           
+           // this.add.sprite(550, 55, 'flag').setScale(0.2);
+
+
+           this.testGroup = this.physics.add.group({
+                immovable: true,
+                allowGravity: false
+            });
+
+            this.testGroup.add(this.physics.add.sprite(550, 55, 'flag').setScale(0.2), true);
+
+            
+            //generateAndAddPlatforms(platforms, 0);
+
+            cursors = this.input.keyboard.addKeys(
+                {
+                    up: Phaser.Input.Keyboard.KeyCodes.W,
+                    down: Phaser.Input.Keyboard.KeyCodes.S,
+                    left: Phaser.Input.Keyboard.KeyCodes.A,
+                    right: Phaser.Input.Keyboard.KeyCodes.D
+                });
+
+            // cursors = this.input.keyboard.createCursorKeys();
+
+
+            // stars = this.physics.add.group({
+            //     key: 'star',
+            //     repeat: levels[level].repeat,
+            //     setXY: { x: 12, y: 0, stepX: 70 }
+            // });
+
+            // stars.children.iterate(function (child) {
+
+            //     child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+
+            // });
+
+
+            this.anims.create({
+                key: 'left',
+                frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'turn',
+                frames: [{ key: 'dude', frame: 4 }],
+                frameRate: 20
+            });
+
+            this.anims.create({
+                key: 'right',
+                frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+
+            this.anims.create({
+                key: 'left-king',
+                frames: this.anims.generateFrameNumbers('dude-with-king', { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'turn-king',
+                frames: [{ key: 'dude-with-king', frame: 4 }],
+                frameRate: 20
+            });
+
+            this.anims.create({
+                key: 'right-king',
+                frames: this.anims.generateFrameNumbers('dude-with-king', { start: 5, end: 8 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'wash-cycle-anim',
+                frames: this.anims.generateFrameNumbers('wash-cycle', { start: 0, end: 3 }),
+                frameRate: 30,
+                repeat: -1
+            });
+
+            // this.anims.create({
+            //     key: 'knight-idle',
+            //     frames: [{ key: 'knight-idle', frame: 4 }],
+            //     frameRate: 20
+            // });
+
+            this.anims.create({
+                key: 'knight-idle',
+                frames: this.anims.generateFrameNumbers('knight-idle', { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: -1
+            });
+
+
+            scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
+
+            this.physics.add.collider(player, platforms);
+            this.physics.add.collider(knight1, platforms);
+            this.physics.add.collider(knight2, platforms);
+
+
+            // 
+            this.physics.add.collider(player, platforms);
+            
+            this.physics.add.collider(player, this.testGroup, function(){
+                
+
+                if (didCollectFlag){
+                    // do nothing
+                }else{
+                    flagSound.play();
+                    // in future remove the flag
+                }
+
+                didCollectFlag = true;
+
+            });
+
+            // this.physics.add.collider(stars, platforms);
+            // this.physics.add.overlap(player, stars, collectStar, null, this);
+
+            timerText = this.add.text(20, 40, 'aa', { fontSize: '32px', fill: '#000' });
+
+
+
+            music = this.sound.add('piano');
+            music.play();
+
+
+
+            nextLevel = () => {
+
+                if ((level + 1) == levels.length) {
+                    // you win , let washer continue
+                    scoreText.setText('Score: ' + score + ' - GAME OVER, YOU WIN');
+                    gameOver = true; // should stop timer
+
+                } else {
+
+                    washStarted = false;
+                    level++;
+
+                    score += 1000;
+                    scoreText.setText('Score: ' + score);
+
+                    stars = this.physics.add.group({
+                        key: 'star',
+                        repeat: levels[level].repeat,
+                        setXY: { x: 12, y: 0, stepX: 70 }
+                    });
+
+                    stars.children.iterate(function (child) {
+
+                        child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+
+                    });
+
+
+                    // pass existing platform (ground) into generator
+                    generateAndAddPlatforms(platforms, level);
+
+                    this.physics.add.collider(stars, platforms);
+                    this.physics.add.overlap(player, stars, collectStar, null, this);
+
+                }
+
+
+
+            }
+
+
+        }
+
+        function update(time, delta) {
+
+            var starAnim = '';
+
+            if (!gameOver) {
+                timer += delta;
+                timerText.setText('Time: ' + Math.round(timer, 2));
+            }
+
+            knight1.anims.play('knight-idle', true);
+            knight2.anims.play('knight-idle', true);
+
+
+            if (didCollectFlag > 0) {
+                starAnim = '-king';
+            }
+
+            if (cursors.left.isDown) {
+                player.setVelocityX(-160);
+
+                player.anims.play('left' + starAnim, true);
+            }
+            else if (cursors.right.isDown) {
+                player.setVelocityX(160);
+
+                player.anims.play('right' + starAnim, true);
+            }
+            else {
+                player.setVelocityX(0);
+
+                player.anims.play('turn' + starAnim);
+            }
+
+            if (cursors.up.isDown && player.body.touching.down) {
+                player.setVelocityY(-420);
+            }
+
+
+
+        }
+
+        function collectStar(player, star) {
+            star.disableBody(true, true);
+            hasStars++;
+
+            score += 10;
+            scoreText.setText('Score: ' + score);
+        }
+
+        function dropStarStartWash(player, wm) {
+
+
+            if (!washStarted && hasStars > 0 && stars.countActive(true) === 0) {
+                hasStars = 0;
+                washStarted = true;
+
+                score += 100;
+                scoreText.setText('Score: ' + score);
+
+                wm.anims.play('wash-cycle-anim', true);
+
+                setTimeout(function () {
+                    wm.anims.stop();
+                    nextLevel();
+                }, 2200);
+
+            }
+
+        }
+
+        function generateAndAddPlatforms(platforms, complexityLevel) {
+
+
+            // some sensible constraints
+            // if you have platforms high than this
+            // then you need a platform AT this height to jump FROM
+            const minPlatform = [600, 400];
+            const extremeTopLeftPlatform = [0, 90];
+            const extremeTopLeftPlatformJumpBox = [180, 190];
+            const topLeftPlatform = [50, 250];
+
+            switch (complexityLevel) {
+                case 0:
+                    // top left
+                    platforms.create(topLeftPlatform[0], topLeftPlatform[1], 'ground');
+
+                    break;
+                case 1:
+                    // top right
+                    platforms.create(750, 220, 'ground');
+                    // assume player dropped to the machine to be at this point so 
+                    // give them a leg back up
+                    platforms.create(minPlatform[0], minPlatform[1], 'ground');
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    platforms.create(600, 400, 'ground');
+                    platforms.create(750, 220, 'ground').setScale(0.2).refreshBody();
+                    break;
+                case 4:
+                    // x top left
+                    platforms.create(extremeTopLeftPlatform[0], extremeTopLeftPlatform[1], 'platform2').setScale(0.2).refreshBody();
+                    platforms.create(extremeTopLeftPlatformJumpBox[0], extremeTopLeftPlatformJumpBox[1], 'ground').setScale(0.2).refreshBody();
+                    break;
+                default:
+                    console.error('How did we end up like this?');
+            }
+
+        }
+
+    </script>
+
+</body>
+
+</html>
