@@ -96,6 +96,7 @@
             this.load.audio('thudSound', ['assets/thud.wav']);
 
 
+            this.load.image('invisible', 'assets/img/invisible.png');
             this.load.image('sky', 'assets/img/castle.png');
             this.load.image('ground', 'assets/img/ground.png');
             this.load.image('platform2', 'assets/img/platform2.png');
@@ -159,6 +160,9 @@
             // platform 1 top side
             platforms.create(620, 460, 'platform-1').setScale(0.4,0.3).setOrigin(0.5,5.9).refreshBody();
 
+            // platform 0 turret height
+            platforms.create(630, 80, 'platform-0').setScale(8,0.2).setOrigin(0,0).refreshBody();
+
 
             flagSound = this.sound.add('flagSound');
             thudSound = this.sound.add('thudSound');
@@ -215,9 +219,9 @@
                 allowGravity: false
             });
 
-            this.testGroup.add(this.physics.add.sprite(550, 55, 'flag').setScale(0.2), true);
+            this.testGroup.add(this.physics.add.sprite(400, 90, 'flag').setScale(0.2).setDepth(0), true);
 
-            
+
             //generateAndAddPlatforms(platforms, 0);
 
             cursors = this.input.keyboard.addKeys(
@@ -327,6 +331,19 @@
             });
 
 
+            this.physics.add.overlap(player, this.testGroup, function(a,b,collisionInfo){
+                if (didCollectFlag){
+                    // do nothing
+                }else{
+                    flagSound.play();
+                    // in future remove the flag
+                }
+
+                didCollectFlag = true;
+            }, null, this);
+
+
+
             this.physics.add.collider(knight1, player);
             this.physics.add.collider(knight2, player);
             this.physics.add.collider(knight3, player);
@@ -340,19 +357,19 @@
             // 
             this.physics.add.collider(player, platforms);
             
-            this.physics.add.collider(player, this.testGroup, function(){
+            // this.physics.add.collider(player, this.testGroup, function(){
                 
 
-                if (didCollectFlag){
-                    // do nothing
-                }else{
-                    flagSound.play();
-                    // in future remove the flag
-                }
+            //     if (didCollectFlag){
+            //         // do nothing
+            //     }else{
+            //         flagSound.play();
+            //         // in future remove the flag
+            //     }
 
-                didCollectFlag = true;
+            //     didCollectFlag = true;
 
-            });
+            // });
 
             // this.physics.add.collider(stars, platforms);
             // this.physics.add.overlap(player, stars, collectStar, null, this);
