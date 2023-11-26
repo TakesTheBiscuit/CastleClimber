@@ -111,14 +111,14 @@
 
             this.load.image('star', 'assets/img/star.png');
 
-            this.load.image('flag', 'assets/img/castleflag.png');
+            this.load.image('flag', 'assets/img/flag.png');
 
-            this.load.spritesheet('knight-idle', 'assets/img/knight/Idle/Idle_South_StripSheet.png', { frameWidth: 24, frameHeight: 30 });
+            this.load.spritesheet('knight-idle', 'assets/img/knight/knight-sprite.png', { frameWidth: 49, frameHeight: 92 });
 
-            this.load.spritesheet('knight-walk-right', 'assets/img/knight/Walk/Walk_East_StripSheet.png', { frameWidth: 24, frameHeight: 30 });
+            this.load.spritesheet('knight-walk-right', 'assets/img/knight/knight-sprite.png', { frameWidth: 49, frameHeight: 97 });
 
-            this.load.spritesheet('dude', 'assets/img/dude.png', { frameWidth: 32, frameHeight: 48 });
-            this.load.spritesheet('dude-with-king', 'assets/img/dude-with-star.png', { frameWidth: 32, frameHeight: 48 });
+            this.load.spritesheet('dude', 'assets/img/frog/frog-sprite.png', { frameWidth: 53, frameHeight: 48 });
+            this.load.spritesheet('dude-with-king', 'assets/img/king/king-sprite.png', { frameWidth: 41, frameHeight: 58 });
             this.load.spritesheet('wash-cycle', 'assets/img/wash-cycle.png', { frameWidth: 191, frameHeight: 209 });
         
             
@@ -182,19 +182,19 @@
             player.setCollideWorldBounds(true);
 
             knight1 = this.physics.add.sprite(350,600, 'knight-idle');
-            knight1.setScale(3.7,3.7);
+            knight1.setScale(2.7,2.7);
             knight1.setBounce(0.2);
             knight1.setCollideWorldBounds(true);
 
 
             knight2 = this.physics.add.sprite(650, 100, 'knight-idle');
-            knight2.setScale(1.8,1.8);
+            knight2.setScale(1,1);
             knight2.setBounce(0.2);
             knight2.setCollideWorldBounds(true);
 
 
             knight3 = this.physics.add.sprite(610,100, 'knight-idle');
-            knight3.setScale(1.8,1.8);
+            knight3.setScale(1,1);
             //knight3.setBounce(0.2);
             knight3.setName('knight3');
             knight3.setCollideWorldBounds(true);
@@ -219,7 +219,7 @@
                 allowGravity: false
             });
 
-            this.testGroup.add(this.physics.add.sprite(400, 90, 'flag').setScale(0.2).setDepth(0), true);
+            this.testGroup.add(this.physics.add.sprite(230, 105, 'flag').setScale(0.08).setDepth(0).setAngle(-20), true);
 
 
             //generateAndAddPlatforms(platforms, 0);
@@ -250,20 +250,20 @@
 
             this.anims.create({
                 key: 'left',
-                frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
+                frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 2 }),
                 frameRate: 10,
                 repeat: -1
             });
 
             this.anims.create({
                 key: 'turn',
-                frames: [{ key: 'dude', frame: 4 }],
+                frames: [{ key: 'dude', frame: 2 }],
                 frameRate: 20
             });
 
             this.anims.create({
                 key: 'right',
-                frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
+                frames: this.anims.generateFrameNumbers('dude', { start: 3, end: 5 }),
                 frameRate: 10,
                 repeat: -1
             });
@@ -278,13 +278,13 @@
 
             this.anims.create({
                 key: 'turn-king',
-                frames: [{ key: 'dude-with-king', frame: 4 }],
+                frames: [{ key: 'dude-with-king', frame: 2 }],
                 frameRate: 20
             });
 
             this.anims.create({
                 key: 'right-king',
-                frames: this.anims.generateFrameNumbers('dude-with-king', { start: 5, end: 8 }),
+                frames: this.anims.generateFrameNumbers('dude-with-king', { start: 4, end: 7 }),
                 frameRate: 10,
                 repeat: -1
             });
