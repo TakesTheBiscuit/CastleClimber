@@ -184,12 +184,14 @@
             knight1 = this.physics.add.sprite(350,600, 'knight-idle');
             knight1.setScale(0.3,0.3);
             knight1.setBounce(0.1);
+            knight1.setName('knight1');
             knight1.setCollideWorldBounds(true);
 
 
             knight2 = this.physics.add.sprite(650, 100, 'knight-idle');
             knight2.setScale(0.3,0.3);
             knight2.setBounce(0.1);
+            knight2.setName('knight2');
             knight2.setCollideWorldBounds(true);
 
 
@@ -326,15 +328,69 @@
 
             scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
+            
             this.physics.add.collider(player, platforms);
-            this.physics.add.collider(knight1, platforms);
-            this.physics.add.collider(knight2, platforms);
+
+
+            // when we are not the king we should work out
+            // if we bopped them on the top of their bounding box
+            // and if we didn't then we lose a life
+            this.physics.add.collider(knight1, player, function(obj1, obj2){
+                // console.log(obj1, obj2);
+                // have we collected the flag? (if so this doesnt matter)
+                if (!didCollectFlag && obj1.name === 'knight1') {
+                    // check if bopped
+                    // if not, we lose a life
+                    // console.log(obj2);
+                    // console.log(obj1, obj2);
+                    if (obj1.body.touching.up) {
+                        // boop
+                        console.log('boop - on top!');
+                        knight1.disableBody(true, true);
+
+                    } else {
+                        // lose a life (or score for now)
+                        score -= 1000;
+                        scoreText.setText('Score: ' + score);
+
+                    }
+
+                }
+            });
+
+            this.physics.add.collider(knight2, player, function(obj1, obj2){
+                // console.log(obj1, obj2);
+                // have we collected the flag? (if so this doesnt matter)
+                if (!didCollectFlag && obj1.name === 'knight2') {
+                    // check if bopped
+                    // if not, we lose a life
+                    //console.log(obj1, obj2);
+                    if (obj1.body.touching.up) {
+                        // boop
+                        console.log('boop - on top!');
+                        knight2.disableBody(true, true);
+                    } else {
+                        // lose a life (or score for now)
+                        score -= 1000;
+                        scoreText.setText('Score: ' + score);
+
+                    }
+                }
+            });
+
+
+            // falling knight sequence
             this.physics.add.collider(knight3, platforms, function(obj1, obj2){
                 // console.log(obj1, obj2);
                 if (!knight3didHitGround && obj2.name === 'ground') {
                     knight3didHitGround = true;
                 }
             });
+
+
+
+            this.physics.add.collider(knight1, platforms);
+            this.physics.add.collider(knight2, platforms);
 
 
             this.physics.add.overlap(player, this.testGroup, function(a,b,collisionInfo){
@@ -353,10 +409,6 @@
             }, null, this);
 
 
-
-            this.physics.add.collider(knight1, player);
-            this.physics.add.collider(knight2, player);
-            this.physics.add.collider(knight3, player);
 
             
             // create the dead knight
