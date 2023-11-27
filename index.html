@@ -181,6 +181,7 @@
             player.setBounce(0.35);
             player.setCollideWorldBounds(true);
 
+            // bottom left knight
             knight1 = this.physics.add.sprite(350,600, 'knight-idle');
             knight1.setScale(0.3,0.3);
             knight1.setBounce(0.1);
@@ -307,20 +308,20 @@
             this.anims.create({
                 key: 'knight-idle',
                 frames: this.anims.generateFrameNumbers('knight-idle', { start: 0, end: 3 }),
-                frameRate: 10,
+                frameRate: 15,
                 repeat: -1
             });
             this.anims.create({
                 key: 'knight-walk-right',
                 frames: this.anims.generateFrameNumbers('knight-walk', { start: 0, end: 3 }),
-                frameRate: 10,
+                frameRate: 15,
                 repeat: -1
             });
 
             this.anims.create({
                 key: 'knight-walk-left',
                 frames: this.anims.generateFrameNumbers('knight-walk', { start: 4, end: 8 }),
-                frameRate: 10,
+                frameRate: 15,
                 repeat: -1
             });
 
@@ -353,6 +354,10 @@
                         score -= 1000;
                         scoreText.setText('Score: ' + score);
 
+                        // stop the knight moving
+                        knight1.setVelocityX(0);
+
+
                     }
 
                 }
@@ -373,6 +378,11 @@
                         // lose a life (or score for now)
                         score -= 1000;
                         scoreText.setText('Score: ' + score);
+
+
+                        // stop the knight moving
+                        knight2.setVelocityX(0);
+
 
                     }
                 }
@@ -505,6 +515,7 @@
             knight3.anims.play('knight-walk-right', true);
 
 
+
             // console.log ('k3',knight2.body.velocity.x);
             if (knight2.body.velocity.x > 0) {
                 // right
@@ -516,7 +527,7 @@
             }
             if (knight2.body.velocity.x == 0) {
                 // idle
-                knight2.anims.play('knight-idle', true);
+                knight2.anims.play('knight-idle',true);
             }
             
             if (knight1.body.velocity.x > 0) {
@@ -529,7 +540,7 @@
             }
             if (knight1.body.velocity.x == 0) {
                 // idle
-                knight1.anims.play('knight-idle', true);
+                knight1.anims.play('knight-idle',true);
             }
             
 
