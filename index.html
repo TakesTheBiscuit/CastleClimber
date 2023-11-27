@@ -178,18 +178,18 @@
 
 
             player = this.physics.add.sprite(900, 600, 'dude');
-            player.setBounce(0.2);
+            player.setBounce(0.35);
             player.setCollideWorldBounds(true);
 
             knight1 = this.physics.add.sprite(350,600, 'knight-idle');
             knight1.setScale(0.3,0.3);
-            knight1.setBounce(0.2);
+            knight1.setBounce(0.1);
             knight1.setCollideWorldBounds(true);
 
 
             knight2 = this.physics.add.sprite(650, 100, 'knight-idle');
             knight2.setScale(0.3,0.3);
-            knight2.setBounce(0.2);
+            knight2.setBounce(0.1);
             knight2.setCollideWorldBounds(true);
 
 
@@ -342,6 +342,10 @@
                     // do nothing
                 }else{
                     flagSound.play();
+
+                    score += 1000;
+                    scoreText.setText('Score: ' + score);
+
                     // in future remove the flag
                 }
 
@@ -441,11 +445,11 @@
 
             if (!gameOver) {
                 timer += delta;
-                timerText.setText('Time: ' + Math.round(timer, 2));
+                timerText.setText('Time: ' + Math.round(timer / 1000, 2));
             }
 
             
-            
+            // this knight dies
             knight3.anims.play('knight-walk-right', true);
 
 
