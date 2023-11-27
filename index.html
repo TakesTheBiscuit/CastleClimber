@@ -76,6 +76,7 @@
         var flagSound;
         var fallSound;
         var thudSound;
+        var punchSound;
 
         var knight3didHitGround = false;
         var didPlayKnight3GroundSound = false;
@@ -96,6 +97,8 @@
             this.load.audio('flagSound', ['assets/flag.wav']);
             this.load.audio('fallSound', ['assets/falling.wav']);
             this.load.audio('thudSound', ['assets/thud.wav']);
+            this.load.audio('punchSound', ['assets/punch.wav']);
+
 
             this.load.image('invisible', 'assets/img/invisible.png');
             this.load.image('sky', 'assets/img/castle.png');
@@ -165,7 +168,9 @@
             flagSound = this.sound.add('flagSound');
             thudSound = this.sound.add('thudSound');
             fallSound = this.sound.add('fallSound');
+            punchSound = this.sound.add('punchSound');
 
+            
 
             // castle roof
             platforms.create(120, 100, 'ground')
@@ -215,6 +220,29 @@
             //     emitter.explode(16);
 
             // });
+
+
+            // send a knight for a random walk
+            // Set up a timer to emit particles with a delay
+            this.time.addEvent({
+                delay: 5000, // Delay in milliseconds (adjust as needed)
+                repeat: -1, // Repeat indefinitely or adjust as needed
+                callback: function () {
+                    // Randomly pick between 1 and another value (let's say 2)
+                    var randomValue = Math.random() < 0.5 ? 1 : 2;
+
+                    // Use an if statement
+                    if (randomValue === 1) {
+                        // Do something for the case when randomValue is 1
+                        knight1.setVelocityX(-65);
+                    } else {
+                        // Do something for the case when randomValue is 2
+                        knight1.setVelocityX(65);
+                    }
+
+                },
+                callbackScope: this
+            });
 
 
             const emitter = this.add.particles(400, 250, 'flares', {
@@ -354,7 +382,7 @@
                         
 
                             knight1.setData('attackingRight', true);
-                            //console.log('knight1 attackingRight');
+                            
                         }
 
                         // i think i got these round the wrong way
@@ -365,17 +393,24 @@
                         
 
                             knight1.setData('attackingLeft', true);
-                            //console.log('knight1 attackingLeft');
                         }
 
-
+                       
+                        if (!punchSound.isPlaying) {
+                            punchSound.play();
+                        }
+                        
                         emitter.explode(7);
+                        
 
                     }
 
                 }
             });
 
+            // when we are not the king we should work out
+            // if we bopped them on the top of their bounding box
+            // and if we didn't then we lose a life
             this.physics.add.collider(knight2, player, function(obj1, obj2){
                 // have we collected the flag? (if so this doesnt matter)
                 if (!didCollectFlag && obj1.name === 'knight2') {
@@ -388,33 +423,49 @@
                         console.log('boop - on top!');
                         knight2.disableBody(true, true);
 
-                    
-
                     } else {
 
                         // lose a life (or score for now)
                         score -= 1000;
                         scoreText.setText('Score: ' + score);
 
-                        // stop the knight moving
                         knight2.setVelocityX(0);
 
-                        emitter.explode(16);
-
+                     
+                        // i think i got these round the wrong way
                         if (obj1.body.touching.left) {
+                            emitter.setPosition(obj1.body.position.x + obj1.body.halfWidth - knightParticleOffsetX,
+                                            obj1.body.position.y + obj1.body.halfHeight + knightParticleOffsetY);
+                        
+
                             knight2.setData('attackingRight', true);
-                            console.log('knight2 a right');
+                            
                         }
 
+                        // i think i got these round the wrong way
                         if (obj1.body.touching.right) {
+
+                            emitter.setPosition(obj1.body.position.x + obj1.body.halfWidth + knightParticleOffsetX,
+                                            obj1.body.position.y + obj1.body.halfHeight + knightParticleOffsetY);
+                        
+
                             knight2.setData('attackingLeft', true);
-                            console.log('knight2 a left');
                         }
 
+                       
+                        if (!punchSound.isPlaying) {
+                            punchSound.play();
+                        }
+                        
+                        emitter.explode(7);
+                        
 
                     }
-                } // have flag check
+
+                }
             });
+
+            
 
 
             // falling knight sequence
@@ -513,10 +564,24 @@
             knight1.on(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + "knight-punch-right", function () {
                 idleKnight1();
                 console.log('knight1 finished punching R');
+                punchSound.stop();
             }, this);
             knight1.on(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + "knight-punch-left", function () {
                 idleKnight1();
                 console.log('knight1 finished punching L');
+                punchSound.stop();
+            }, this);
+
+
+            knight2.on(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + "knight-punch-right", function () {
+                idleKnight2();
+                console.log('knight2 finished punching R');
+                punchSound.stop();
+            }, this);
+            knight2.on(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + "knight-punch-left", function () {
+                idleKnight2();
+                console.log('knight2 finished punching L');
+                punchSound.stop();
             }, this);
 
         }
@@ -527,6 +592,14 @@
             knight1.setData('attackingLeft', false);
             // stop the knight moving
             knight1.setVelocityX(0);
+        }
+
+        // used to stop knight2 from attacking
+        function idleKnight2(){
+            knight2.setData('attackingRight', false);
+            knight2.setData('attackingLeft', false);
+            // stop the knight moving
+            knight2.setVelocityX(0);
         }
 
         function update(time, delta) {
@@ -542,29 +615,28 @@
             // this knight dies
             knight3.anims.play('knight-walk-right', true);
 
-            //console.log(knight2.getData('attackingRight'));
-
-            // console.log ('k3',knight2.body.velocity.x);
-            if (!(knight2.data.values.attackingRight != true && knight2.data.values.attackingLeft  != true)
+           
+            if ( knight2.data.values.attackingRight  != true && knight2.data.values.attackingLeft  != true
               && knight2.body.velocity.x > 0) {
                 // right
                 knight2.anims.play('knight-walk-right', true);
             }
-            if (!(knight2.data.values.attackingRight  != true && knight2.data.values.attackingLeft  != true)
+            if ( knight2.data.values.attackingRight  != true && knight2.data.values.attackingLeft  != true
                 && knight2.body.velocity.x < 0) {
                 // left
                 knight2.anims.play('knight-walk-left', true);
             }
-            if (!(knight2.data.values.attackingRight  != true && knight2.data.values.attackingLeft  != true)
+            if ( knight2.data.values.attackingRight  != true && knight2.data.values.attackingLeft  != true
                  && knight2.body.velocity.x == 0) {
                 // idle
-                knight2.anims.play('knight-idle',true);
-            }
-            if (knight2.data.values.attackingRight == true) {
-                knight2.anims.play('knight-punch-right',true);
-            }
-            if (knight2.data.values.attackingLeft == true) {
-                knight2.anims.play('knight-punch-left',true);
+                knight2.anims.play('knight-idle', true);
+            } else {
+                if (knight2.data.values.attackingRight == true) {
+                    knight2.anims.play('knight-punch-right', true);
+                }
+                if (knight2.data.values.attackingLeft == true) {
+                    knight2.anims.play('knight-punch-left', true);
+                }
             }
             
             if ( knight1.data.values.attackingRight  != true && knight1.data.values.attackingLeft  != true
@@ -588,7 +660,6 @@
                 if (knight1.data.values.attackingLeft == true) {
                     knight1.anims.play('knight-punch-left', true);
                 }
-
             }
             
 
