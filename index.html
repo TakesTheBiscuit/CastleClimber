@@ -77,6 +77,8 @@
         var fallSound;
         var thudSound;
         var punchSound;
+        var jumpSound;
+        var oofSound;
 
         var knight3didHitGround = false;
         var didPlayKnight3GroundSound = false;
@@ -98,7 +100,8 @@
             this.load.audio('fallSound', ['assets/falling.wav']);
             this.load.audio('thudSound', ['assets/thud.wav']);
             this.load.audio('punchSound', ['assets/punch.wav']);
-
+            this.load.audio('jumpSound', ['assets/boing.wav']);
+            this.load.audio('oofSound', ['assets/ooff.wav']);
 
             this.load.image('invisible', 'assets/img/invisible.png');
             this.load.image('sky', 'assets/img/castle.png');
@@ -169,6 +172,8 @@
             thudSound = this.sound.add('thudSound');
             fallSound = this.sound.add('fallSound');
             punchSound = this.sound.add('punchSound');
+            jumpSound = this.sound.add('jumpSound');
+            oofSound = this.sound.add('oofSound');
 
             
 
@@ -364,6 +369,9 @@
 
                         // boop
                         console.log('boop - on top!');
+                        if (!oofSound.isPlaying) {
+                            oofSound.play();
+                        }
                         knight1.disableBody(true, true);
 
                     } else {
@@ -421,6 +429,9 @@
 
                         // boop
                         console.log('boop - on top!');
+                        if (!oofSound.isPlaying) {
+                            oofSound.play();
+                        }
                         knight2.disableBody(true, true);
 
                     } else {
@@ -717,6 +728,9 @@
 
             if (cursors.up.isDown && player.body.touching.down) {
                 player.setVelocityY(-420);
+                if (!jumpSound.isPlaying) {
+                    jumpSound.play();
+                }
             }
 
 
