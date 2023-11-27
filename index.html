@@ -5,7 +5,6 @@
     <script src="node_modules/phaser/dist/phaser-arcade-physics.min.js"></script>
     <title>CastleClimber Game</title>
 </head>
-<!-- https://opengameart.org/content/rpg-asset-character-knights-sms -->
 <body>
 
     <script>
@@ -85,6 +84,9 @@
         var didPlayKnight3FallingSound = false;
         var deadKnight3;
 
+        var knightParticleOffsetX = 30;
+        var knightParticleOffsetY = 0;
+
         var game = new Phaser.Game(config);
 
         function preload() {
@@ -94,7 +96,6 @@
             this.load.audio('flagSound', ['assets/flag.wav']);
             this.load.audio('fallSound', ['assets/falling.wav']);
             this.load.audio('thudSound', ['assets/thud.wav']);
-
 
             this.load.image('invisible', 'assets/img/invisible.png');
             this.load.image('sky', 'assets/img/castle.png');
@@ -108,24 +109,22 @@
             this.load.image('platform-3', 'assets/img/platform-3.png');
             this.load.image('platform-1', 'assets/img/platform-1.png');
 
-
             this.load.image('star', 'assets/img/star.png');
 
             this.load.image('flag', 'assets/img/flag.png');
 
-            this.load.spritesheet('knight-idle', 'assets/img/knight-remaster/knight-sprite-idle.png', { frameWidth: 155.5, frameHeight: 300 });
-
             this.load.spritesheet('knight-walk', 'assets/img/knight-remaster/knight-sprite-large.png', { frameWidth: 155.5, frameHeight: 300 });
+            this.load.spritesheet('knight-idle', 'assets/img/knight-remaster/knight-sprite-idle.png', { frameWidth: 155.5, frameHeight: 300 });
+            this.load.spritesheet('knight-punch', 'assets/img/knight-remaster/knight-punch-sprite.png', { frameWidth: 155.4, frameHeight: 300 });
 
             this.load.spritesheet('dude', 'assets/img/frog/frog-sprite.png', { frameWidth: 53, frameHeight: 48 });
             this.load.spritesheet('dude-with-king', 'assets/img/king/king-sprite.png', { frameWidth: 41, frameHeight: 58 });
             this.load.spritesheet('wash-cycle', 'assets/img/wash-cycle.png', { frameWidth: 191, frameHeight: 209 });
         
-            
             this.load.image('deadKnight', 'assets/img/knight-remaster/knight-dead.png');
-
+        
+            this.load.atlas('flares', 'assets/particle/flares.png', 'assets/particle/flares.json');
         }
-
 
         function create() {
             //this.add.image(2440, 3432, 'sky');
@@ -163,11 +162,9 @@
             // platform 0 turret height
             // platforms.create(630, 80, 'platform-0').setScale(8,0.2).setOrigin(0,0).refreshBody();
 
-
             flagSound = this.sound.add('flagSound');
             thudSound = this.sound.add('thudSound');
             fallSound = this.sound.add('fallSound');
-
 
 
             // castle roof
@@ -178,6 +175,7 @@
 
 
             player = this.physics.add.sprite(900, 600, 'dude');
+            player.setScale(1);
             player.setBounce(0.35);
             player.setCollideWorldBounds(true);
 
@@ -187,6 +185,8 @@
             knight1.setBounce(0.1);
             knight1.setName('knight1');
             knight1.setCollideWorldBounds(true);
+            knight1.setData('attackingRight', false);
+            knight1.setData('attackingLeft', false);
 
 
             knight2 = this.physics.add.sprite(650, 100, 'knight-idle');
@@ -194,38 +194,41 @@
             knight2.setBounce(0.1);
             knight2.setName('knight2');
             knight2.setCollideWorldBounds(true);
-
+            knight2.setData('attackingRight', false);
+            knight2.setData('attackingLeft', false);
 
             knight3 = this.physics.add.sprite(610,100, 'knight-idle');
             knight3.setScale(0.3,0.3);
-            //knight3.setBounce(0.2);
             knight3.setName('knight3');
             knight3.setCollideWorldBounds(true);
-
-
-
-            // wm = this.physics.add.sprite(80, 80, '');
-            // wm.setScale(0.2);
-            // wm.setOrigin(-2.7, 0.2);
-            // //wm.setBounce(0.2);
-            // wm.setCollideWorldBounds(true);
-            // wm.setImmovable(true);
-            // wm.refreshBody();
-
-           // this.add.sprite(550, 55, 'flag').setScale(0.2);
-           
-           // this.add.sprite(550, 55, 'flag').setScale(0.2);
-
 
            this.testGroup = this.physics.add.group({
                 immovable: true,
                 allowGravity: false
             });
 
+            particles = this.add.particles('flares');
+
+
+            // this.input.on('pointerdown', pointer => {
+
+            //     emitter.explode(16);
+
+            // });
+
+
+            const emitter = this.add.particles(400, 250, 'flares', {
+                frame: [ 'red', 'yellow', 'green' ],
+                lifespan: 580,
+                speed: { min: -200, max: 90 },
+                scale: { start: 0.2, end: 0 },
+                gravityY: 150,
+                blendMode: 'ADD',
+                emitting: false
+            });
+
+            console.log('emitter', emitter);
             this.testGroup.add(this.physics.add.sprite(230, 105, 'flag').setScale(0.08).setDepth(0).setAngle(-20), true);
-
-
-            //generateAndAddPlatforms(platforms, 0);
 
             cursors = this.input.keyboard.addKeys(
                 {
@@ -234,22 +237,6 @@
                     left: Phaser.Input.Keyboard.KeyCodes.A,
                     right: Phaser.Input.Keyboard.KeyCodes.D
                 });
-
-            // cursors = this.input.keyboard.createCursorKeys();
-
-
-            // stars = this.physics.add.group({
-            //     key: 'star',
-            //     repeat: levels[level].repeat,
-            //     setXY: { x: 12, y: 0, stepX: 70 }
-            // });
-
-            // stars.children.iterate(function (child) {
-
-            //     child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
-
-            // });
-
 
             this.anims.create({
                 key: 'left',
@@ -270,7 +257,6 @@
                 frameRate: 10,
                 repeat: -1
             });
-
 
             this.anims.create({
                 key: 'left-king',
@@ -299,12 +285,6 @@
                 repeat: -1
             });
 
-            // this.anims.create({
-            //     key: 'knight-idle',
-            //     frames: [{ key: 'knight-idle', frame: 4 }],
-            //     frameRate: 20
-            // });
-
             this.anims.create({
                 key: 'knight-idle',
                 frames: this.anims.generateFrameNumbers('knight-idle', { start: 0, end: 3 }),
@@ -320,43 +300,76 @@
 
             this.anims.create({
                 key: 'knight-walk-left',
-                frames: this.anims.generateFrameNumbers('knight-walk', { start: 4, end: 8 }),
+                frames: this.anims.generateFrameNumbers('knight-walk', { start: 4, end: 7 }),
                 frameRate: 15,
                 repeat: -1
             });
 
-            
+            this.anims.create({
+                key: 'knight-punch-left',
+                frames: this.anims.generateFrameNumbers('knight-punch', { start: 0, end: 13 }),
+                frameRate: 35,
+                repeat: 1
+            });
 
+            this.anims.create({
+                key: 'knight-punch-right',
+                frames: this.anims.generateFrameNumbers('knight-punch', { start: 14, end: 27 }),
+                frameRate:35,
+                repeat: 1
+            });
+            
             scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
-            
             this.physics.add.collider(player, platforms);
-
 
             // when we are not the king we should work out
             // if we bopped them on the top of their bounding box
             // and if we didn't then we lose a life
             this.physics.add.collider(knight1, player, function(obj1, obj2){
-                // console.log(obj1, obj2);
                 // have we collected the flag? (if so this doesnt matter)
                 if (!didCollectFlag && obj1.name === 'knight1') {
+
                     // check if bopped
                     // if not, we lose a life
-                    // console.log(obj2);
-                    // console.log(obj1, obj2);
                     if (obj1.body.touching.up) {
+
                         // boop
                         console.log('boop - on top!');
                         knight1.disableBody(true, true);
 
                     } else {
+
                         // lose a life (or score for now)
                         score -= 1000;
                         scoreText.setText('Score: ' + score);
 
-                        // stop the knight moving
                         knight1.setVelocityX(0);
 
+                     
+                        // i think i got these round the wrong way
+                        if (obj1.body.touching.left) {
+                            emitter.setPosition(obj1.body.position.x + obj1.body.halfWidth - knightParticleOffsetX,
+                                            obj1.body.position.y + obj1.body.halfHeight + knightParticleOffsetY);
+                        
+
+                            knight1.setData('attackingRight', true);
+                            //console.log('knight1 attackingRight');
+                        }
+
+                        // i think i got these round the wrong way
+                        if (obj1.body.touching.right) {
+
+                            emitter.setPosition(obj1.body.position.x + obj1.body.halfWidth + knightParticleOffsetX,
+                                            obj1.body.position.y + obj1.body.halfHeight + knightParticleOffsetY);
+                        
+
+                            knight1.setData('attackingLeft', true);
+                            //console.log('knight1 attackingLeft');
+                        }
+
+
+                        emitter.explode(7);
 
                     }
 
@@ -364,34 +377,48 @@
             });
 
             this.physics.add.collider(knight2, player, function(obj1, obj2){
-                // console.log(obj1, obj2);
                 // have we collected the flag? (if so this doesnt matter)
                 if (!didCollectFlag && obj1.name === 'knight2') {
+
                     // check if bopped
                     // if not, we lose a life
-                    //console.log(obj1, obj2);
                     if (obj1.body.touching.up) {
+
                         // boop
                         console.log('boop - on top!');
                         knight2.disableBody(true, true);
+
+                    
+
                     } else {
+
                         // lose a life (or score for now)
                         score -= 1000;
                         scoreText.setText('Score: ' + score);
 
-
                         // stop the knight moving
                         knight2.setVelocityX(0);
 
+                        emitter.explode(16);
+
+                        if (obj1.body.touching.left) {
+                            knight2.setData('attackingRight', true);
+                            console.log('knight2 a right');
+                        }
+
+                        if (obj1.body.touching.right) {
+                            knight2.setData('attackingLeft', true);
+                            console.log('knight2 a left');
+                        }
+
 
                     }
-                }
+                } // have flag check
             });
 
 
             // falling knight sequence
             this.physics.add.collider(knight3, platforms, function(obj1, obj2){
-                // console.log(obj1, obj2);
                 if (!knight3didHitGround && obj2.name === 'ground') {
                     knight3didHitGround = true;
                 }
@@ -429,23 +456,7 @@
             // 
             this.physics.add.collider(player, platforms);
             
-            // this.physics.add.collider(player, this.testGroup, function(){
-                
-
-            //     if (didCollectFlag){
-            //         // do nothing
-            //     }else{
-            //         flagSound.play();
-            //         // in future remove the flag
-            //     }
-
-            //     didCollectFlag = true;
-
-            // });
-
-            // this.physics.add.collider(stars, platforms);
-            // this.physics.add.overlap(player, stars, collectStar, null, this);
-
+           
             timerText = this.add.text(20, 40, 'aa', { fontSize: '32px', fill: '#000' });
 
 
@@ -499,6 +510,23 @@
             knight1.setVelocityX(80);
 
 
+            knight1.on(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + "knight-punch-right", function () {
+                idleKnight1();
+                console.log('knight1 finished punching R');
+            }, this);
+            knight1.on(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + "knight-punch-left", function () {
+                idleKnight1();
+                console.log('knight1 finished punching L');
+            }, this);
+
+        }
+
+        // used to stop knight1 from attacking
+        function idleKnight1(){
+            knight1.setData('attackingRight', false);
+            knight1.setData('attackingLeft', false);
+            // stop the knight moving
+            knight1.setVelocityX(0);
         }
 
         function update(time, delta) {
@@ -514,33 +542,53 @@
             // this knight dies
             knight3.anims.play('knight-walk-right', true);
 
-
+            //console.log(knight2.getData('attackingRight'));
 
             // console.log ('k3',knight2.body.velocity.x);
-            if (knight2.body.velocity.x > 0) {
+            if (!(knight2.data.values.attackingRight != true && knight2.data.values.attackingLeft  != true)
+              && knight2.body.velocity.x > 0) {
                 // right
                 knight2.anims.play('knight-walk-right', true);
             }
-            if (knight2.body.velocity.x < 0) {
+            if (!(knight2.data.values.attackingRight  != true && knight2.data.values.attackingLeft  != true)
+                && knight2.body.velocity.x < 0) {
                 // left
                 knight2.anims.play('knight-walk-left', true);
             }
-            if (knight2.body.velocity.x == 0) {
+            if (!(knight2.data.values.attackingRight  != true && knight2.data.values.attackingLeft  != true)
+                 && knight2.body.velocity.x == 0) {
                 // idle
                 knight2.anims.play('knight-idle',true);
             }
+            if (knight2.data.values.attackingRight == true) {
+                knight2.anims.play('knight-punch-right',true);
+            }
+            if (knight2.data.values.attackingLeft == true) {
+                knight2.anims.play('knight-punch-left',true);
+            }
             
-            if (knight1.body.velocity.x > 0) {
+            if ( knight1.data.values.attackingRight  != true && knight1.data.values.attackingLeft  != true
+              && knight1.body.velocity.x > 0) {
                 // right
                 knight1.anims.play('knight-walk-right', true);
             }
-            if (knight1.body.velocity.x < 0) {
+            if ( knight1.data.values.attackingRight  != true && knight1.data.values.attackingLeft  != true
+                && knight1.body.velocity.x < 0) {
                 // left
                 knight1.anims.play('knight-walk-left', true);
             }
-            if (knight1.body.velocity.x == 0) {
+            if ( knight1.data.values.attackingRight  != true && knight1.data.values.attackingLeft  != true
+                 && knight1.body.velocity.x == 0) {
                 // idle
-                knight1.anims.play('knight-idle',true);
+                knight1.anims.play('knight-idle', true);
+            } else {
+                if (knight1.data.values.attackingRight == true) {
+                    knight1.anims.play('knight-punch-right', true);
+                }
+                if (knight1.data.values.attackingLeft == true) {
+                    knight1.anims.play('knight-punch-left', true);
+                }
+
             }
             
 
@@ -630,6 +678,12 @@
                 }, 2200);
 
             }
+
+        }
+
+
+        function punch(char1, char2) {
+            // char 1 punches char 2
 
         }
 
