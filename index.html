@@ -113,16 +113,16 @@
 
             this.load.image('flag', 'assets/img/flag.png');
 
-            this.load.spritesheet('knight-idle', 'assets/img/knight/knight-sprite.png', { frameWidth: 49, frameHeight: 92 });
+            this.load.spritesheet('knight-idle', 'assets/img/knight-remaster/knight-sprite-idle.png', { frameWidth: 155.5, frameHeight: 300 });
 
-            this.load.spritesheet('knight-walk-right', 'assets/img/knight/knight-sprite.png', { frameWidth: 49, frameHeight: 97 });
+            this.load.spritesheet('knight-walk', 'assets/img/knight-remaster/knight-sprite-large.png', { frameWidth: 155.5, frameHeight: 300 });
 
             this.load.spritesheet('dude', 'assets/img/frog/frog-sprite.png', { frameWidth: 53, frameHeight: 48 });
             this.load.spritesheet('dude-with-king', 'assets/img/king/king-sprite.png', { frameWidth: 41, frameHeight: 58 });
             this.load.spritesheet('wash-cycle', 'assets/img/wash-cycle.png', { frameWidth: 191, frameHeight: 209 });
         
             
-            this.load.image('deadKnight', 'assets/img/Knight/Dead.png');
+            this.load.image('deadKnight', 'assets/img/knight-remaster/knight-dead.png');
 
         }
 
@@ -161,7 +161,7 @@
             platforms.create(620, 460, 'platform-1').setScale(0.4,0.3).setOrigin(0.5,5.9).refreshBody();
 
             // platform 0 turret height
-            platforms.create(630, 80, 'platform-0').setScale(8,0.2).setOrigin(0,0).refreshBody();
+            // platforms.create(630, 80, 'platform-0').setScale(8,0.2).setOrigin(0,0).refreshBody();
 
 
             flagSound = this.sound.add('flagSound');
@@ -182,19 +182,19 @@
             player.setCollideWorldBounds(true);
 
             knight1 = this.physics.add.sprite(350,600, 'knight-idle');
-            knight1.setScale(2.7,2.7);
+            knight1.setScale(0.3,0.3);
             knight1.setBounce(0.2);
             knight1.setCollideWorldBounds(true);
 
 
             knight2 = this.physics.add.sprite(650, 100, 'knight-idle');
-            knight2.setScale(1,1);
+            knight2.setScale(0.3,0.3);
             knight2.setBounce(0.2);
             knight2.setCollideWorldBounds(true);
 
 
             knight3 = this.physics.add.sprite(610,100, 'knight-idle');
-            knight3.setScale(1,1);
+            knight3.setScale(0.3,0.3);
             //knight3.setBounce(0.2);
             knight3.setName('knight3');
             knight3.setCollideWorldBounds(true);
@@ -310,11 +310,17 @@
             });
             this.anims.create({
                 key: 'knight-walk-right',
-                frames: this.anims.generateFrameNumbers('knight-walk-right', { start: 0, end: 3 }),
+                frames: this.anims.generateFrameNumbers('knight-walk', { start: 0, end: 3 }),
                 frameRate: 10,
                 repeat: -1
             });
 
+            this.anims.create({
+                key: 'knight-walk-left',
+                frames: this.anims.generateFrameNumbers('knight-walk', { start: 4, end: 8 }),
+                frameRate: 10,
+                repeat: -1
+            });
 
             
 
@@ -350,7 +356,7 @@
 
             
             // create the dead knight
-            deadKnight3 = this.add.image(-10, -10, 'deadKnight').setScale(1.8,1.8);
+            deadKnight3 = this.add.image(-100, -200, 'deadKnight').setScale(0.25,0.25);
 
 
 
@@ -424,6 +430,9 @@
             }
 
 
+            knight1.setVelocityX(80);
+
+
         }
 
         function update(time, delta) {
@@ -435,9 +444,39 @@
                 timerText.setText('Time: ' + Math.round(timer, 2));
             }
 
-            knight1.anims.play('knight-idle', true);
-            knight2.anims.play('knight-idle', true);
+            
+            
             knight3.anims.play('knight-walk-right', true);
+
+
+            // console.log ('k3',knight2.body.velocity.x);
+            if (knight2.body.velocity.x > 0) {
+                // right
+                knight2.anims.play('knight-walk-right', true);
+            }
+            if (knight2.body.velocity.x < 0) {
+                // left
+                knight2.anims.play('knight-walk-left', true);
+            }
+            if (knight2.body.velocity.x == 0) {
+                // idle
+                knight2.anims.play('knight-idle', true);
+            }
+            
+            if (knight1.body.velocity.x > 0) {
+                // right
+                knight1.anims.play('knight-walk-right', true);
+            }
+            if (knight1.body.velocity.x < 0) {
+                // left
+                knight1.anims.play('knight-walk-left', true);
+            }
+            if (knight1.body.velocity.x == 0) {
+                // idle
+                knight1.anims.play('knight-idle', true);
+            }
+            
+
 
 
             // start walking straight away
@@ -446,6 +485,7 @@
             if (timer > 3000 && knight3.body.touching.down==false)
             {
                 knight3falling = true;
+
             }
 
             if (!didPlayKnight3FallingSound && knight3falling) {
