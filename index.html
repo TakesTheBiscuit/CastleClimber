@@ -80,6 +80,7 @@
             knight1;
             knight2;
             knight3;
+            knight4;
 
             flagSound;
             fallSound;
@@ -87,6 +88,7 @@
             punchSound;
             jumpSound;
             oofSound;
+            gameOverSound;
 
             knight3didHitGround = false;
             didPlayKnight3GroundSound = false;
@@ -114,6 +116,9 @@
                 this.load.audio('punchSound', ['assets/punch.wav']);
                 this.load.audio('jumpSound', ['assets/boing.wav']);
                 this.load.audio('oofSound', ['assets/ooff.wav']);
+                this.load.audio('gameOverSound', ['assets/gameover.wav']);
+
+                
 
                 this.load.image('invisible', 'assets/img/invisible.png');
                 this.load.image('sky', 'assets/img/castle.png');
@@ -136,7 +141,7 @@
                 this.load.spritesheet('knight-idle', 'assets/img/knight-remaster/knight-sprite-idle.png', { frameWidth: 155.5, frameHeight: 300 });
                 this.load.spritesheet('knight-punch', 'assets/img/knight-remaster/knight-punch-sprite.png', { frameWidth: 155.4, frameHeight: 300 });
 
-                this.load.spritesheet('dude', 'assets/img/frog/frog-sprite.png', { frameWidth: 53, frameHeight: 48 });
+                this.load.spritesheet('dude', 'assets/img/frog/frog-sprite.png', { frameWidth: 53, frameHeight: 42 });
                 this.load.spritesheet('dude-with-king', 'assets/img/king/king-sprite.png', { frameWidth: 41, frameHeight: 58 });
                 this.load.spritesheet('wash-cycle', 'assets/img/wash-cycle.png', { frameWidth: 191, frameHeight: 209 });
 
@@ -172,8 +177,15 @@
                 // platform 5 right side
                 this.platforms.create(700, 645, 'platform-5').setScale(0.4, 0.3).setOrigin(0.5, 5.9).refreshBody();
 
-                // platform 3 right side
-                this.platforms.create(418, 522, 'platform-3').setScale(0.4, 0.3).setOrigin(0.5, 5.9).refreshBody();
+                // platform 3 left side top
+                
+                const movePlatform = this.physics.add.image(450, 470, 'platform-5').setScale(0.4, 0.1).setOrigin(0.5, 5.9).refreshBody();
+                movePlatform.body.allowGravity = false;
+                movePlatform.body.immovable = true;
+                movePlatform.body.moves = false;
+
+                // platform top right - little ledge
+                this.platforms.create(670, 300, 'platform-5').setScale(0.2, 0.08).refreshBody();
 
                 // platform 1 top side
                 this.platforms.create(620, 460, 'platform-1').setScale(0.4, 0.3).setOrigin(0.5, 5.9).refreshBody();
@@ -181,12 +193,26 @@
                 // platform 0 turret height
                 // this.platforms.create(630, 80, 'platform-0').setScale(8,0.2).setOrigin(0,0).refreshBody();
 
+
+                // platform '3' actually should move
+                this.tweens.add({
+                    targets: movePlatform,
+                    y: 400,
+                    duration: 2000,
+                    ease: 'Sine.easeInOut',
+                    repeat: -1,
+                    yoyo: true
+                });
+
+
                 this.flagSound = this.sound.add('flagSound');
                 this.thudSound = this.sound.add('thudSound');
                 this.fallSound = this.sound.add('fallSound');
                 this.punchSound = this.sound.add('punchSound');
                 this.jumpSound = this.sound.add('jumpSound');
                 this.oofSound = this.sound.add('oofSound');
+                this.gameOverSound = this.sound.add('gameOverSound');
+
 
 
 
@@ -232,11 +258,26 @@
                 this.knight2.setData('attackingRight', false);
                 this.knight2.setData('attackingLeft', false);
 
+
+                this.knight4 = this.physics.add.sprite(420, 220, 'knight-idle');
+                this.knight4.setScale(0.3, 0.3);
+                this.knight4.setBounce(0.1);
+                this.knight4.setName('knight4');
+                this.knight4.setCollideWorldBounds(true);
+                this.knight4.setData('attackingRight', false);
+                this.knight4.setData('attackingLeft', false);
+                // start him walking to the right until random timer kicks in
+                this.knight4.setVelocityX(10);
+
+
+
+                // this knight is just a prop who falls off
                 this.knight3 = this.physics.add.sprite(610, 100, 'knight-idle');
                 this.knight3.setScale(0.3, 0.3);
                 this.knight3.setName('knight3');
                 this.knight3.setCollideWorldBounds(true);
 
+                // this is actually our flag!
                 this.testGroup = this.physics.add.group({
                     immovable: true,
                     allowGravity: false
@@ -265,9 +306,31 @@
                         if (randomValue === 1) {
                             // Do something for the case when randomValue is 1
                             this.knight1.setVelocityX(-65);
+
                         } else {
                             // Do something for the case when randomValue is 2
                             this.knight1.setVelocityX(65);
+                        }
+
+                    },
+                    callbackScope: this
+                });
+
+                this.time.addEvent({
+                    delay: 1200, // Delay in milliseconds (adjust as needed)
+                    repeat: -1, // Repeat indefinitely or adjust as needed
+                    callback: function () {
+                        // Randomly pick between 1 and another value (let's say 2)
+                        var randomValue = Math.random() < 0.5 ? 1 : 2;
+
+                        // Use an if statement
+                        if (randomValue === 1) {
+                            // Do something for the case when randomValue is 1
+                            this.knight4.setVelocityX(-10);
+
+                        } else {
+                            // Do something for the case when randomValue is 2
+                            this.knight4.setVelocityX(10);
                         }
 
                     },
@@ -285,7 +348,17 @@
                     emitting: false
                 });
 
-                console.log('emitter', emitter);
+
+                const flagEmitter = this.add.particles(400, 250, 'flares', {
+                    frame: ['red', 'yellow', 'green'],
+                    lifespan: 4000,
+                    speed: { min: -200, max: 200 },
+                    scale: { start: 0.6, end: 0 },
+                    gravityY: 150,
+                    blendMode: 'ADD',
+                    emitting: false
+                });
+
                 this.testGroup.add(this.physics.add.sprite(230, 105, 'flag').setScale(0.08).setDepth(0).setAngle(-20), true);
 
                 this.cursors = this.input.keyboard.addKeys(
@@ -403,6 +476,8 @@
                                 this.oofSound.play();
                             }
                             this.knight1.disableBody(true, true);
+                            this.score += 200;
+                            this.scoreText.setText('Score: ' + this.score);
 
                         } else {
 
@@ -465,6 +540,8 @@
                                 this.oofSound.play();
                             }
                             this.knight2.disableBody(true, true);
+                            this.score += 200;
+                            this.scoreText.setText('Score: ' + this.score);
 
                         } else {
 
@@ -511,6 +588,68 @@
                 }, null, this);
 
 
+                this.physics.add.collider(this.knight4, this.player, function (obj1, obj2) {
+                    // have we collected the flag? (if so this doesnt matter)
+                    if (!this.didCollectFlag && obj1.name === 'knight4') {
+
+                        // check if bopped
+                        // if not, we lose a life
+                        if (obj1.body.touching.up) {
+
+                            // boop
+                            console.log('boop - on top!');
+                            if (!this.oofSound.isPlaying) {
+                                this.oofSound.play();
+                            }
+                            this.knight4.disableBody(true, true);
+                            this.score += 200;
+                            this.scoreText.setText('Score: ' + this.score);
+
+                        } else {
+
+                            // lose a life (or score for now)
+                            this.health -= 1;
+                            this.healthText.setText('Health: ' + this.health);
+
+                            this.checkAndRemoveHearts();
+
+                            this.knight4.setVelocityX(0);
+
+
+                            // i think i got these round the wrong way
+                            if (obj1.body.touching.left) {
+                                emitter.setPosition(obj1.body.position.x + obj1.body.halfWidth - this.knightParticleOffsetX,
+                                    obj1.body.position.y + obj1.body.halfHeight + this.knightParticleOffsetY);
+
+
+                                this.knight4.setData('attackingRight', true);
+
+                            }
+
+                            // i think i got these round the wrong way
+                            if (obj1.body.touching.right) {
+
+                                emitter.setPosition(obj1.body.position.x + obj1.body.halfWidth + this.knightParticleOffsetX,
+                                    obj1.body.position.y + obj1.body.halfHeight + this.knightParticleOffsetY);
+
+
+                                this.knight4.setData('attackingLeft', true);
+                            }
+
+
+                            if (!this.punchSound.isPlaying) {
+                                this.punchSound.play();
+                            }
+
+                            emitter.explode(7);
+
+
+                        }
+
+                    }
+                }, null, this);
+
+
                 // falling knight sequence
                 this.physics.add.collider(this.knight3, this.platforms, function (obj1, obj2) {
                     if (!this.knight3didHitGround && obj2.name === 'ground') {
@@ -522,6 +661,11 @@
 
                 this.physics.add.collider(this.knight1, this.platforms);
                 this.physics.add.collider(this.knight2, this.platforms);
+                this.physics.add.collider(this.knight4, this.platforms);
+
+                this.physics.add.collider(this.player, movePlatform);
+                this.physics.add.collider(this.knight4, movePlatform);
+                this.physics.add.collider(this.knight1, movePlatform);
 
 
                 this.physics.add.overlap(this.player, this.testGroup, function (a, b, collisionInfo) {
@@ -537,6 +681,15 @@
                     }
 
                     this.didCollectFlag = true;
+
+
+                    // particles are fun
+                    const flagPos = this.testGroup.children.entries[0].body.position;
+                    console.log(flagPos.x);
+                    flagEmitter.setPosition(flagPos.x, flagPos.y);
+                    flagEmitter.explode(10);
+                            
+
                 }, null, this);
 
 
@@ -585,6 +738,18 @@
                     this.punchSound.stop();
                 }, this);
 
+
+                this.knight4.on(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + "knight-punch-right", function () {
+                    this.idleKnight4();
+                    console.log('knight4 finished punching R');
+                    this.punchSound.stop();
+                }, this);
+                this.knight4.on(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + "knight-punch-left", function () {
+                    this.idleKnight4();
+                    console.log('knight4 finished punching L');
+                    this.punchSound.stop();
+                }, this);
+
             }
 
             // used to stop knight1 from attacking
@@ -603,6 +768,15 @@
                 this.knight2.setVelocityX(0);
             }
 
+            // used to stop knight4 from attacking
+            idleKnight4() {
+                this.knight4.setData('attackingRight', false);
+                this.knight4.setData('attackingLeft', false);
+                // stop the knight moving
+                this.knight4.setVelocityX(0);
+            }
+
+
             checkAndRemoveHearts() {
                 if (this.health < 66 && this.health > 33) {
                     this.life3.setVisible(false);
@@ -612,9 +786,44 @@
                 }
                 if (this.health <= 0) {
                     this.life1.setVisible(false);
-                    // and it's game over
-                    this.music.stop();
-                    this.scene.start('GameOverScene');
+
+                    this.thudSound.play();
+                    this.gameOverSound.play();
+
+                    this.tweens.add({
+                        targets: this.player,
+                        alpha: { from: 1, to: 0.5 },
+                        ease: 'Sine.Out',
+                        duration: 250,
+                        repeat: -1,
+                        yoyo: true
+                    });
+                    
+                    this.tweens.add({
+                        targets:  this.music,
+                        volume:   0,
+                        duration: 1000
+                    });
+
+                    
+                    
+                    // fade to black
+                    this.cameras.main.fadeOut(1800, 0, 0, 0)
+
+                    this.time.addEvent({
+                        delay: 1800, // Delay in milliseconds (adjust as needed)
+                        repeat: 0, // Repeat indefinitely or adjust as needed
+                        callback: function () {
+                            
+
+                            this.scene.start('GameOverScene');
+                            this.music.stop();
+
+                        },
+                        callbackScope: this
+                    });
+
+
                 }
             }
 
@@ -673,6 +882,31 @@
                     }
                     if (this.knight1.data.values.attackingLeft == true) {
                         this.knight1.anims.play('knight-punch-left', true);
+                    }
+                }
+
+
+
+                if (this.knight4.data.values.attackingRight != true && this.knight4.data.values.attackingLeft != true
+                    && this.knight4.body.velocity.x > 0) {
+                    // right
+                    this.knight4.anims.play('knight-walk-right', true);
+                }
+                if (this.knight4.data.values.attackingRight != true && this.knight4.data.values.attackingLeft != true
+                    && this.knight4.body.velocity.x < 0) {
+                    // left
+                    this.knight4.anims.play('knight-walk-left', true);
+                }
+                if (this.knight4.data.values.attackingRight != true && this.knight4.data.values.attackingLeft != true
+                    && this.knight4.body.velocity.x == 0) {
+                    // idle
+                    this.knight4.anims.play('knight-idle', true);
+                } else {
+                    if (this.knight4.data.values.attackingRight == true) {
+                        this.knight4.anims.play('knight-punch-right', true);
+                    }
+                    if (this.knight4.data.values.attackingLeft == true) {
+                        this.knight4.anims.play('knight-punch-left', true);
                     }
                 }
 
