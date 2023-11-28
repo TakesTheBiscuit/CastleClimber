@@ -10,6 +10,21 @@
 
     <script>
 
+        class GameOverScene extends Phaser.Scene {
+
+            mainText;
+
+            constructor ()
+            {
+                super('GameOverScene');
+            }
+
+            preload() { }
+            create() { 
+                this.mainText = this.add.text(400, 400, 'Game Over', { fontSize: '32px', fill: '#fff' });
+            }
+            update(time, delta) { }
+        }
 
         class CastleScene extends Phaser.Scene {
 
@@ -84,6 +99,11 @@
             knightParticleOffsetY = 0;
 
 
+            constructor ()
+            {
+                super('CastleScene');
+            }
+            
             preload() {
 
                 this.load.audio('piano', ['assets/piano.wav']);
@@ -358,7 +378,7 @@
                 });
 
                 this.scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
-                this.healthText = this.add.text(830, 16, 'health: 99', { fontSize: '32px', fill: '#000' });
+                this.healthText = this.add.text(810, 16, 'health: 99', { fontSize: '32px', fill: '#000' });
 
 
 
@@ -592,6 +612,9 @@
                 }
                 if (this.health <= 0) {
                     this.life1.setVisible(false);
+                    // and it's game over
+                    this.music.stop();
+                    this.scene.start('GameOverScene');
                 }
             }
 
@@ -732,7 +755,7 @@
                     debug: false
                 }
             },
-            scene: CastleScene
+            scene: [CastleScene, GameOverScene]
         };
 
 
