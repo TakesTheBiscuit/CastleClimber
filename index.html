@@ -64,7 +64,7 @@
 
             this.load.image('play-again-button', 'assets/img/play-again.png');
             this.load.atlas('flares', 'assets/particle/flares.png', 'assets/particle/flares.json');
-            this.load.audio('winner', ['assets/winnerchickendinner.wav']);
+            this.load.audio('winner', ['assets/winnerchickendinner.ogg', 'assets/winnerchickendinner.wav']);
 
 
         }
@@ -186,15 +186,15 @@
             
             preload() {
 
-                this.load.audio('piano', ['assets/piano.wav']);
+                this.load.audio('piano', ['assets/piano.ogg', 'assets/piano.wav']);
 
-                this.load.audio('flagSound', ['assets/flag.wav']);
-                this.load.audio('fallSound', ['assets/falling.wav']);
-                this.load.audio('thudSound', ['assets/thud.wav']);
-                this.load.audio('punchSound', ['assets/punch.wav']);
-                this.load.audio('jumpSound', ['assets/boing.wav']);
-                this.load.audio('oofSound', ['assets/ooff.wav']);
-                this.load.audio('gameOverSound', ['assets/gameover.wav']);
+                this.load.audio('flagSound', ['assets/flag.ogg', 'assets/flag.wav']);
+                this.load.audio('fallSound', ['assets/falling.ogg', 'assets/falling.wav']);
+                this.load.audio('thudSound', ['assets/thud.ogg', 'assets/thud.wav']);
+                this.load.audio('punchSound', ['assets/punch.ogg', 'assets/punch.wav']);
+                this.load.audio('jumpSound', ['assets/boing.ogg', 'assets/boing.wav']);
+                this.load.audio('oofSound', ['assets/ooff.ogg', 'assets/ooff.wav']);
+                this.load.audio('gameOverSound', ['assets/gameover.ogg', 'assets/gameover.wav']);
 
                 
 
@@ -241,7 +241,7 @@
                 this.platforms = this.physics.add.staticGroup();
 
                 // actual ground
-                this.platforms.create(200, 750, 'ground').setScale(0.43).setOrigin(0.2, 0.5).refreshBody().setName('ground');
+                this.platforms.create(520, 750, 'ground').setScale(0.95).refreshBody().setName('ground');
 
                 // platform 8: nearest floor
                 this.platforms.create(650, 920, 'platform-8').setScale(0.43).setOrigin(0.5, 5.9).refreshBody();
@@ -295,10 +295,10 @@
 
 
                 // castle roof
-                this.platforms.create(120, 100, 'ground')
-                    .setScale(1.25)
-                    .setOrigin(-0.35, 0)
-                    .refreshBody();
+                // this.platforms.create(120, 100, 'ground')
+                //     .setScale(1.25)
+                //     .setOrigin(-0.35, 0)
+                //     .refreshBody();
 
 
                 this.player = this.physics.add.sprite(900, 600, 'dude');
