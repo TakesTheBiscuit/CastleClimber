@@ -39,10 +39,70 @@
 
                 });
 
+
+            
+
+              
+
+
                 
             }
             update(time, delta) { }
         }
+
+
+    class WinningScene extends Phaser.Scene {
+
+        mainText;
+
+        constructor ()
+        {
+            super('WinningScene');
+        }
+
+        preload() { 
+
+            this.load.image('play-again-button', 'assets/img/play-again.png');
+            this.load.atlas('flares', 'assets/particle/flares.png', 'assets/particle/flares.json');
+            this.load.audio('winner', ['assets/winnerchickendinner.wav']);
+
+
+        }
+        create() { 
+            this.mainText = this.add.text(250, 90, 'NICE WORK THE KINGS BACK!', { fontSize: '32px', fill: '#fff' });
+
+            const sprite = this.add.sprite(500, 420, 'play-again-button').setInteractive();
+
+            sprite.on('pointerdown', function (pointer)
+            {
+
+                this.setTint(0xff0000);
+                setTimeout(function(){
+                    window.location.reload();
+                }, 200);
+
+            });
+
+            const backgroundMusic = this.sound.add('winner');
+            backgroundMusic.loop = true; // This is what you are looking for
+            backgroundMusic.play();
+
+
+            const emitter = this.add.particles(475, 200, 'flares', {
+                    frame: ['red', 'yellow', 'green' ],
+                    lifespan: 1800,
+                    speed: { min: 5, max: 180 },
+                    scale: { start: 0.5, end: 0 },
+                    gravityY: 160,
+                    blendMode: 'ADD',
+                    emitting: true
+                });
+
+            
+        }
+        update(time, delta) { }
+        }
+
 
         class CastleScene extends Phaser.Scene {
 
@@ -691,9 +751,25 @@
                         // do nothing
                     } else {
                         this.flagSound.play();
-
+                        // GOT THE FLAG
                         this.score += 1000;
                         this.scoreText.setText('Score: ' + this.score);
+
+
+                        // fade to black
+                        this.cameras.main.fadeOut(8000, 0, 0, 0)
+
+                        this.time.addEvent({
+                            delay: 6000, // Delay in milliseconds (adjust as n0eeded)
+                            repeat: 0, // Repeat indefinitely or adjust as needed
+                            callback: function () {
+                                
+                                this.scene.start('WinningScene');
+                                this.music.stop();
+
+                            },
+                            callbackScope: this
+                        });
 
                         // in future remove the flag
                     }
@@ -1007,7 +1083,7 @@
                     debug: false
                 }
             },
-            scene: [CastleScene, GameOverScene]
+            scene: [CastleScene, WinningScene, GameOverScene]
         };
 
 
