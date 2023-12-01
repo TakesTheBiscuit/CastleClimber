@@ -4,6 +4,7 @@
 <head>
     <script src="node_modules/phaser/dist/phaser-arcade-physics.min.js"></script>
     <title>CastleClimber Game</title>
+    <!-- P Drage, R Drage, S Drage Nov - Dec 2023 -->
 </head>
 
 <body>
@@ -126,7 +127,6 @@
 
 
             player;
-            wm; // wash machine
 
             stars;
             platforms;
@@ -142,8 +142,6 @@
             life2;
             life3;
 
-            hasStars = 0;
-            washStarted = false;
 
             timer = 0;
             timerText;
@@ -210,7 +208,6 @@
                 this.load.image('platform-3', 'assets/img/platform-3.png');
                 this.load.image('platform-1', 'assets/img/platform-1.png');
 
-                this.load.image('star', 'assets/img/star.png');
                 this.load.image('life', 'assets/img/life.png');
 
                 this.load.image('flag', 'assets/img/flag.png');
@@ -221,7 +218,6 @@
 
                 this.load.spritesheet('dude', 'assets/img/frog/frog-sprite.png', { frameWidth: 53, frameHeight: 42 });
                 this.load.spritesheet('dude-with-king', 'assets/img/king/king-sprite.png', { frameWidth: 41, frameHeight: 58 });
-                this.load.spritesheet('wash-cycle', 'assets/img/wash-cycle.png', { frameWidth: 191, frameHeight: 209 });
 
                 this.load.image('deadKnight', 'assets/img/knight-remaster/knight-dead.png');
 
@@ -487,12 +483,7 @@
                     repeat: -1
                 });
 
-                this.anims.create({
-                    key: 'wash-cycle-anim',
-                    frames: this.anims.generateFrameNumbers('wash-cycle', { start: 0, end: 3 }),
-                    frameRate: 30,
-                    repeat: -1
-                });
+                
 
                 this.anims.create({
                     key: 'knight-idle',
